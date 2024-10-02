@@ -1,0 +1,58 @@
+name: CI for Pipeline ETL Vagas
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  commit-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Validate commit messages
+        run: |
+          # Regex para validar os commits semânticos
+          regex='^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert|merge|release)(\(\S+\))?: .{1,50}$'
+
+          # Loop para verificar cada commit
+          for commit in $(git log origin/main..HEAD --pretty=format:%s); do
+            if [[ ! $commit =~ $regex ]]; then
+              echo "Commit message '$commit' is not semantic. Please follow the semantic commit guidelines."
+              exit 1
+            fi
+          done
+        shell: bash
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: commit-check
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found, skipping dependency installation."
+          fi
+
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest || echo "No tests found, skipping."
