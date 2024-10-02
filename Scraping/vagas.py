@@ -78,7 +78,7 @@ for site in sites:
 # Criar um DataFrame com os dados coletados
 df = pd.DataFrame(vagas)
 
-# Exportar os dados para um arquivo CSV
+# Exportar os dados para um arquivo CSVaaaa
 df.to_csv('vagas_dados.csv', index=False)
 
 print("Coleta concluída. Dados salvos em 'vagas_dados.csv'.")
