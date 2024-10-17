@@ -1,5 +1,5 @@
-#%% [0.0]
-# Importação de Bibliotecas
+# %%
+# In[0.0]: Importação de Bibliotecas
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -12,8 +12,8 @@ import time
 import csv
 import pandas as pd
 
-#%% [0.1]
-# Instalação e Configuração do Driver do Navegador Automático
+# %%
+# In[0.1]: Instalação e Configuração do Driver do Navegador Automático
 
 # Chrome -> Chrome Driver   --- É necessário baixar o driver do Chrome para que ele opere em conjunto com o webdriver
 from webdriver_manager.chrome import ChromeDriverManager                                # Importa o driver do Google Chrome
@@ -41,8 +41,8 @@ for root, dirs, files in os.walk(os.path.dirname(chrome_driver_dir)):
 # Configuração do serviço para o ChromeDriver
 service = Service(chrome_driver_path)
 
-#%% [1.0]
-# Setup Inicial do Script
+# %%
+# In[1.0]: Setup Inicial do Script
 
 # Configuração de Sites com Dados de Vagas
 tabela_de_vagas = {                                                                     # Atribui um dicionário vazio a um objeto 'tabela_de_vagas'
@@ -76,12 +76,13 @@ sites_url_vagas_com_br = [                                                      
 # Criação de um navegador para acessar os sites a serem realizado o Web Scraping
 navegador = webdriver.Chrome(service=service)                                           # Cria o navegador automatizado pelo webdriver
 
-#%% [1.1]
-# Web Scraping Para o Site 'www.vagas.com.br' com Navegador Automatizado por Selenium 
+# %%
+# In[1.1]: Web Scraping Para o Site 'www.vagas.com.br' com Navegador Automatizado por Selenium
 
 for site in sites_url_vagas_com_br:
-    nome = "Engenheiro de Dados"
+    nome = site['nome']
     url_base = site['url_base']
+    site_name = "www.vagas.com.br"
     
     print(f"Iniciando a extração dos dados de Vagas para {nome} do site 'www.vagas.com.br'")
 
@@ -113,12 +114,21 @@ for site in sites_url_vagas_com_br:
     except Exception as e:
         continue
 
+    try:
+        botao_anuncio_2 = WebDriverWait(navegador, 2).until(
+            EC.presence_of_element_located((By.XPATH, "//span[@class='r89-sticky-top-close-button']"))
+        )
+        navegador.execute_script("arguments[0].click();", botao_anuncio_2)
+        time.sleep(1)
+    except:
+        continue
+
     # Loop para abrir vagas e puxar dados de cada vaga
     i = 1
     while True:
         try:
             botao_vaga = WebDriverWait(navegador, 2).until(
-                EC.element_to_be_clickable((By.XPATH, f'/html/body/div[4]/div[3]/div/div/div[2]/section/section/div/ul/li[{i}]/header/div[2]/h2/a'))
+                EC.element_to_be_clickable((By.XPATH, f'/html/body/div[2]/div[3]/div/div/div[2]/section/section/div/ul/li[{i}]/header/div[2]/h2/a'))
             )
             navegador.execute_script("arguments[0].scrollIntoView(true);", botao_vaga)
             navegador.execute_script("arguments[0].click();", botao_vaga)
@@ -140,12 +150,12 @@ for site in sites_url_vagas_com_br:
             tabela_de_vagas["Nível de Experiência"].append(nivel_experiencia)
 
             data_publicacao = WebDriverWait(navegador, 0.5).until(
-                EC.visibility_of_element_located((By.XPATH, '/html/body/div[4]/section[1]/div/div[1]/ul/li[1]'))
+                EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div[1]/ul/li[1]'))
             ).text
             tabela_de_vagas["Data de Publicação"].append(data_publicacao)
 
             faixa_salarial = WebDriverWait(navegador, 0.5).until(
-                EC.visibility_of_element_located((By.XPATH, '/html/body/div[4]/section[2]/main/article/header/div/ul/li[1]/div/span[2]'))
+                EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/section[2]/main/article/header/div/ul/li[1]/div/span[2]'))
             ).text
             tabela_de_vagas["Faixa Salarial"].append(faixa_salarial)
 
@@ -164,7 +174,7 @@ for site in sites_url_vagas_com_br:
             while True:
                 try:
                     beneficio = WebDriverWait(navegador, 0.5).until(
-                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[4]/section[2]/main/article/div[2]/ul/li[{j}]/span'))
+                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[2]/section[2]/main/article/div[2]/ul/li[{j}]/span'))
                     ).text
                     beneficios.append(beneficio)
                     j += 1
@@ -177,7 +187,7 @@ for site in sites_url_vagas_com_br:
             while True:
                 try:
                     descricao_cargo = WebDriverWait(navegador, 0.5).until(
-                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[4]/section[2]/main/article/div[3]/p[{j}]'))
+                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[2]/section[2]/main/article/div[3]/p[{j}]'))
                     ).text
                     descricao_cargos.append(descricao_cargo)
                     j += 1
@@ -190,7 +200,7 @@ for site in sites_url_vagas_com_br:
             while True:
                 try:
                     descricao_empresa = WebDriverWait(navegador, 0.5).until(
-                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[4]/section[2]/main/article/div[4]/p[{j}]'))
+                        EC.visibility_of_element_located((By.XPATH, f'/html/body/div[2]/section[2]/main/article/div[4]/p[{j}]'))
                     ).text
                     descricao_empresas.append(descricao_empresa)
                     j += 1
@@ -203,7 +213,7 @@ for site in sites_url_vagas_com_br:
 
             try:
                 proxima_vaga = WebDriverWait(navegador, 2).until(
-                    EC.presence_of_element_located((By.XPATH, f'/html/body/div[4]/div[3]/div/div/div[2]/section/section/div/ul/li[{i+1}]/header/div[2]/h2/a'))
+                    EC.presence_of_element_located((By.XPATH, f'/html/body/div[2]/div[3]/div/div/div[2]/section/section/div/ul/li[{i+1}]/header/div[2]/h2/a'))
                 )
             except Exception:
                 print(f"Dados de Vagas para {nome} extraídos com sucesso. Total de Vagas Extraídas: {i}")
@@ -219,25 +229,25 @@ for site in sites_url_vagas_com_br:
             except Exception:
                 pass
 
+            print(f"Extraído {i} vagas de {nome} do site {site_name}")
             i += 1
 
         except Exception as e:
             print(f"Erro na iteração {i}: {e}")
             break
 
-print("Web Scraping das vagas do site 'www.vagas.com.br' finalizado.")
+print(f"Web Scraping das vagas do site {site_name} finalizado.")
 
-#%% [1.2]
-# Web Scraping Para o Site 'www.empregare.com' com Navegador Automatizado por Selenium
-
-
-#%% [1.3]
-# Web Scraping Para o Site 'www.catho.com.br' com Navegador Automatizado por Selenium
+# %%
+# In[1.2]: Web Scraping Para o Site 'www.empregare.com' com Navegador Automatizado por Selenium
 
 
+# %%
+# In[1.3]: Web Scraping Para o Site 'www.catho.com.br' com Navegador Automatizado por Selenium
 
-#%% [2.0]
-# Salvando Dados Obtidos em um Banco de Dados com Formato .CSV
+
+# %%
+# In[2.0]: Salvando Dados Obtidos em um Banco de Dados com Formato .CSV
 
 diretorio_projeto = os.getcwd()
 print(f"Salvando os Dados extraídos em formato .csv no diretório: {diretorio_projeto}")
