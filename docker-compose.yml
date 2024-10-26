@@ -1,0 +1,32 @@
+version: '3'
+services:
+  airflow:
+    image: apache/airflow:2.4.2
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=no
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./Scraping:/opt/airflow/dags/Scraping
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+
+  minio:
+    image: minio/minio
+    command: server /data
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+
+  spark:
+    image: bitnami/spark:latest
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"
+      - "8081:8081"
+    volumes:
+      - ./dags:/opt/airflow/dags
