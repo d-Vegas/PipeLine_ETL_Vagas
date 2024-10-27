@@ -1,9 +1,8 @@
-version: '3'
 services:
   airflow:
     image: apache/airflow:2.4.2
     environment:
-      - AIRFLOW__CORE__LOAD_EXAMPLES=no
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
     volumes:
       - ./dags:/opt/airflow/dags
       - ./Scraping:/opt/airflow/dags/Scraping
@@ -11,22 +10,41 @@ services:
       - ./plugins:/opt/airflow/plugins
     ports:
       - "8080:8080"
+    command: ["bash", "-c", "airflow db init && airflow webserver"]
+    networks:
+      - etl_network
+    depends_on:
+      - minio
+      - pyspark
+    restart: always
 
   minio:
     image: minio/minio
-    command: server /data
+    command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
+      - "9001:9001"
     environment:
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ./minio_data:/data
+    networks:
+      - etl_network
+    restart: always
 
-  spark:
-    image: bitnami/spark:latest
+  pyspark:
+    image: apache/spark:3.5.0
     environment:
-      - SPARK_MODE=master
+      - SPARK_MODE=standalone
+    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master"
     ports:
       - "7077:7077"
       - "8081:8081"
-    volumes:
-      - ./dags:/opt/airflow/dags
+    networks:
+      - etl_network
+    restart: always
+
+networks:
+  etl_network:
+    driver: bridge
