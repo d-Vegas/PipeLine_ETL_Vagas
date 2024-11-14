@@ -11,7 +11,7 @@ default_args = {
 }
 
 dag = DAG(
-    'load_to_landzone',
+    'load_landzone',
     default_args=default_args,
     description='Move CSV file to MinIO landzonevagas bucket',
     schedule_interval='@daily',  # Executa uma vez por dia

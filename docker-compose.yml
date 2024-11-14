@@ -1,23 +1,22 @@
 services:
-  # Serviço principal do Airflow
   airflow:
     image: airflow-custom
     container_name: airflow
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__FERNET_KEY: "bbbrBkReEtApiLEKAlhtrTP6eylT32tvg_KyK3tLqco="
+      AWS_ACCESS_KEY_ID: "minioadmin"
+      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      AIRFLOW__CORE__REMOTE_LOG_CONN_ID: "minio_conn"  # Nome da conexão para o MinIO no Airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-      - ./airflow_db:/opt/airflow/
       - ./scraping:/opt/airflow/dags/scraping
     ports:
       - "8081:8080"
     networks:
       - airflow_net
-
-  # Serviço do MinIO
   minio:
     image: minio/minio
     container_name: minio
@@ -33,7 +32,6 @@ services:
     networks:
       - airflow_net
 
-  # Serviço do Apache Spark
   spark:
     image: bitnami/spark
     container_name: spark

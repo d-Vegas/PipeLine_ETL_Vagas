@@ -11,13 +11,13 @@ default_args = {
 }
 
 dag = DAG(
-    'landzone_to_bronze',
+    'bronze_dag',
     default_args=default_args,
     description='Move data from landzonevagas to bronzevagas bucket',
-    schedule_interval='@daily',  # Executa uma vez por dia
+    schedule_interval='@daily',  
 )
 
-# Tarefa para configurar o alias do MinIO
+
 configure_minio = BashOperator(
     task_id='configure_minio',
     bash_command="""
@@ -26,7 +26,7 @@ configure_minio = BashOperator(
     dag=dag,
 )
 
-# Tarefa para mover o arquivo para o bucket 'bronzevagas'
+
 move_to_bronze = BashOperator(
     task_id='move_to_bronze',
     bash_command="""

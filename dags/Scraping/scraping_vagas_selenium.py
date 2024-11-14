@@ -48,9 +48,9 @@ chrome_service = Service(chrome_driver_path)
 
 # Criação de uma tabela vazia para armazenar os dados a serem extraídos
 tabela_de_vagas = {
+    "id":[],
     "nome_vaga":[],
     "empresa":[],
-    "id":[],
     "nivel_experiencia":[],
     "data_publicacao":[],
     "faixa_salario":[],
